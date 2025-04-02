@@ -40,32 +40,76 @@ void enqueue(WaitingQueue* queue, Client client) {
     }
 }
 
-int peek(WaitingQueue* queue, Client* returnClient) {
-
-    if (queue->elderlyQueue.count == queue->generalQueue.count == 0) {
+int peek(const WaitingQueue* queue, Client* returnClient) {
+    if (!queue->elderlyQueue.head && !queue->generalQueue.head) {
         return 0; // Ambas as filas estão vazias
     }
 
     // Se há idosos e ainda não foram atendidos dois consecutivos
-    if (queue->elderlyQueue.count > 0 && queue->elderlyCounter < 2) {
+    else if (queue->elderlyQueue.head && queue->elderlyCounter < 2) {
         *returnClient = queue->elderlyQueue.head->client;
         return 1;
     }
 
     // Se há clientes gerais e já foram atendidos dois idosos
-    if (queue->generalQueue.head && queue->elderlyCounter == 2) {
+    else if (queue->generalQueue.head) {
         *returnClient = queue->generalQueue.head->client;
-        queue->elderlyCounter = 0;
         return 1;
     }
 
     // Se não há clientes gerais, atender idoso mesmo que a regra quebre
-    if (queue->elderlyQueue.head) {
+    else if (queue->elderlyQueue.head) {
         *returnClient = queue->elderlyQueue.head->client;
         return 1;
     }
 
-    return 0; // Caso extremo de erro (não deveria ocorrer)
+    return -1; // Caso extremo que não deve ocorrer
 }
+
+
+
+int dequeue(WaitingQueue* queue, Client* returnClient) {
+    if (!queue->elderlyQueue.head && !queue->generalQueue.head) {
+        return 0; // Ambas as filas estão vazias
+    }
+
+    QueueNode* nodeToRemove = nullptr;
+
+    // Se há idosos e ainda não foram atendidos dois consecutivos
+    if (queue->elderlyQueue.head && queue->elderlyCounter < 2) {
+        nodeToRemove = queue->elderlyQueue.head;
+        queue->elderlyQueue.head = nodeToRemove->next;
+        queue->elderlyCounter++;
+    }
+    // Se há clientes gerais e já foram atendidos dois idosos
+    else if (queue->generalQueue.head) { 
+        nodeToRemove = queue->generalQueue.head;
+        queue->generalQueue.head = nodeToRemove->next;
+        queue->elderlyCounter = 0; // Reinicia o contador de idosos atendidos
+    }
+    // Se não há clientes gerais, atender idoso mesmo que a regra quebre
+    else if (queue->elderlyQueue.head) { 
+        nodeToRemove = queue->elderlyQueue.head;
+        queue->elderlyQueue.head = nodeToRemove->next;
+        queue->elderlyCounter++;
+    }
+
+    // Atualizar tail caso a fila tenha ficado vazia
+    if (nodeToRemove && !queue->elderlyQueue.head) {
+        queue->elderlyQueue.tail = nullptr;
+    }
+    if (nodeToRemove && !queue->generalQueue.head) {
+        queue->generalQueue.tail = nullptr;
+    }
+
+    if (nodeToRemove) {
+        *returnClient = nodeToRemove->client;
+        delete nodeToRemove;
+        return 1;
+    }
+    
+    return -1; // Caso extremo que não deve ocorrer
+}
+
 
 }
