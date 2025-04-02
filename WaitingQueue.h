@@ -2,7 +2,6 @@
 #define WAITINGQUEUE.H
 
 
-
 struct Client {
     char name[50];
     int priority; // 0 geral; 1 idoso
@@ -22,8 +21,8 @@ struct Queue {
 };
 
 struct WaitingQueue {
-    int elderlyCounter;  // Número de idosos na fila
-    int generalCounter;  // Número de clientes gerais na fila
+    int elderlyCounter;  // Contador de idosos atendidos
+    int generalCounter;  // Contador de "gerais" atendidos
     Queue elderlyQueue;  // Fila de idosos
     Queue generalQueue;  // Fila de clientes gerais
 };
