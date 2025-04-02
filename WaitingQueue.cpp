@@ -1,4 +1,5 @@
 #include<WaitingQueue.h>
+#include<cstring>
 
 namespace WaitingQueueTAD {
 
@@ -95,12 +96,8 @@ int dequeue(WaitingQueue* queue, Client* returnClient) {
     }
 
     // Atualizar tail caso a fila tenha ficado vazia
-    if (nodeToRemove && !queue->elderlyQueue.head) {
-        queue->elderlyQueue.tail = nullptr;
-    }
-    if (nodeToRemove && !queue->generalQueue.head) {
-        queue->generalQueue.tail = nullptr;
-    }
+    if (!queue->elderlyQueue.head) queue->elderlyQueue.tail = nullptr;
+    if (!queue->generalQueue.head) queue->generalQueue.tail = nullptr;
 
     if (nodeToRemove) {
         *returnClient = nodeToRemove->client;
@@ -111,5 +108,81 @@ int dequeue(WaitingQueue* queue, Client* returnClient) {
     return -1; // Caso extremo que não deve ocorrer
 }
 
+int removeClient(WaitingQueue* queue, char* name) {
+    QueueNode *prev = nullptr, *current = queue->elderlyQueue.head;
+    
+    // Buscar na fila de idosos
+    while (current) {
+        if (strcmp(current->client.name, name) == 0) {
+            if (prev) {
+                prev->next = current->next;
+            } else {
+                queue->elderlyQueue.head = current->next;
+            }
+            if (!queue->elderlyQueue.head) {
+                queue->elderlyQueue.tail = nullptr;
+            }
+            delete current;
+            queue->elderlyQueue.count--;
+            return 1;
+        }
+        prev = current;
+        current = current->next;
+    }
+
+    // Restaurar os ponteiros para fazer a buscar na fila geral
+    prev = nullptr;
+    current = queue->generalQueue.head;
+    
+    while (current) {
+        if (strcmp(current->client.name, name) == 0) {
+            if (prev) {
+                prev->next = current->next;
+            } else {
+                queue->generalQueue.head = current->next;
+            }
+            if (!queue->generalQueue.head) {
+                queue->generalQueue.tail = nullptr;
+            }
+            delete current;
+            queue->generalQueue.count--;
+            return 1;
+        }
+        prev = current;
+        current = current->next;
+    }
+    
+    return 0; // Cliente não encontrado
+}
+
+
+void deleteQueue(WaitingQueue* queue) {
+    QueueNode* current;
+    
+    // Liberar memória da fila de idosos
+    current = queue->elderlyQueue.head;
+    while (current) {
+        QueueNode* temp = current;
+        current = current->next;
+        delete temp;
+    }
+    queue->elderlyQueue.head = nullptr;
+    queue->elderlyQueue.tail = nullptr;
+    queue->elderlyQueue.count = 0;
+    
+    // Liberar memória da fila geral
+    current = queue->generalQueue.head;
+    while (current) {
+        QueueNode* temp = current;
+        current = current->next;
+        delete temp;
+    }
+    queue->generalQueue.head = nullptr;
+    queue->generalQueue.tail = nullptr;
+    queue->generalQueue.count = 0;
+    
+    // Liberar a estrutura da fila principal
+    delete queue;
+}
 
 }
