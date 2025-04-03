@@ -1,4 +1,4 @@
-#include<WaitingQueue.h>
+#include "WaitingQueue.h"
 #include<cstring>
 
 namespace WaitingQueueTAD {
@@ -80,18 +80,21 @@ int dequeue(WaitingQueue* queue, Client* returnClient) {
     if (queue->elderlyQueue.head && queue->elderlyCounter < 2) {
         nodeToRemove = queue->elderlyQueue.head;
         queue->elderlyQueue.head = nodeToRemove->next;
+        queue->elderlyQueue.count--;
         queue->elderlyCounter++;
     }
     // Se há clientes gerais e já foram atendidos dois idosos
     else if (queue->generalQueue.head) { 
         nodeToRemove = queue->generalQueue.head;
         queue->generalQueue.head = nodeToRemove->next;
+        queue->generalQueue.count--;
         queue->elderlyCounter = 0; // Reinicia o contador de idosos atendidos
     }
     // Se não há clientes gerais, atender idoso mesmo que a regra quebre
     else if (queue->elderlyQueue.head) { 
         nodeToRemove = queue->elderlyQueue.head;
         queue->elderlyQueue.head = nodeToRemove->next;
+        queue->elderlyQueue.count--;
         queue->elderlyCounter++;
     }
 
@@ -153,6 +156,41 @@ int removeClient(WaitingQueue* queue, char* name) {
     }
     
     return 0; // Cliente não encontrado
+}
+
+Client* getQueueOrder(const WaitingQueue* queue, int* numClients) {
+    *numClients = queue->elderlyQueue.count + queue->generalQueue.count;
+    if (*numClients == 0) {
+        return nullptr;
+    }
+
+    Client* order = new Client[*numClients];
+    int index = 0;
+    QueueNode* elderlyCurrent = queue->elderlyQueue.head;
+    QueueNode* generalCurrent = queue->generalQueue.head;
+    int elderlyCount = queue->elderlyQueue.count;
+    int generalCount = queue->generalQueue.count;
+
+    while (elderlyCount > 0 || generalCount > 0) {
+        // Atender dois idosos, se disponíveis
+        for (int i = 0; i < 2 && elderlyCount > 0; i++) {
+            if (elderlyCurrent) {
+                order[index++] = elderlyCurrent->client;
+                elderlyCurrent = elderlyCurrent->next;
+                elderlyCount--;
+            }
+        }
+        // Atender um não idoso, se disponível
+        if (generalCount > 0) {
+            if (generalCurrent) {
+                order[index++] = generalCurrent->client;
+                generalCurrent = generalCurrent->next;
+                generalCount--;
+            }
+        }
+    }
+    
+    return order;
 }
 
 

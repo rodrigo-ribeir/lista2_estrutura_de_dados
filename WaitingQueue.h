@@ -1,6 +1,7 @@
-#ifndef WAITINGQUEUE.H
-#define WAITINGQUEUE.H
+#ifndef WAITINGQUEUE_H
+#define WAITINGQUEUE_H
 
+namespace WaitingQueueTAD {
 
 struct Client {
     char name[50];
@@ -32,4 +33,14 @@ WaitingQueue* createQueue();
 
 void enqueue(WaitingQueue* queue, Client client);
 
+int peek(const WaitingQueue* queue, Client* returnClient);
+
+int dequeue(WaitingQueue* queue, Client* returnClient);
+
+int removeClient(WaitingQueue* queue, char* name);
+
+Client* getQueueOrder(const WaitingQueue* queue, int* numClients);
+
+void deleteQueue(WaitingQueue* queue);
+}
 #endif
